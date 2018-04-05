@@ -36,9 +36,10 @@ class PlatformDeconz:
         ('OSRAM', 'Plug 01')
     ]
 
-    def __init__(self, address, api_key):
+    def __init__(self, address, api_key, blacklist):
         self.request_base = 'http://{host}/api/{key}/' \
             .format(host=address, key=api_key)
+        self.blacklist = blacklist
 
     def _get_light_data(self, entry):
         traits = ['action.devices.traits.OnOff']
@@ -98,7 +99,8 @@ class PlatformDeconz:
         # get deconz lights
         light_response = requests.get(self.request_base + 'lights')
         for deconz_id, entry in light_response.json().items():
-
+            if entry['name'] in self.blacklist.get('lights', []):
+                continue
             device_type, traits, attributes = self._get_light_data(entry)
 
             light = {
@@ -132,6 +134,8 @@ class PlatformDeconz:
         # humidity gets added on QUERY
         sensor_response = requests.get(self.request_base + 'sensors')
         for deconz_id, entry in sensor_response.json().items():
+            if entry['name'] in self.blacklist.get('sensors', []):
+                continue
             # only temperature sensors get added
             if not entry['type'] == 'ZHATemperature':
                 continue
@@ -178,6 +182,8 @@ class PlatformDeconz:
         group_response = requests.get(self.request_base + 'groups')
         for deconz_id, entry in group_response.json().items():
             # create a (pseudo) unique id from bridge_id and name hash
+            if entry['name'] in self.blacklist.get('groups', []):
+                continue
             group = {'id': hash_string('{id}_{name}'.format(id=config['bridgeid'], name=entry['name']))}
 
             # check if group is hidden or automically created
@@ -527,6 +533,7 @@ if __name__ == '__main__':
     app.secret_key = config['flask']['secret']
 
     global providers
-    providers = dict(deconz=PlatformDeconz(address=config['deconz']['host'], api_key=config['deconz']['api_key']))
+    providers = dict(deconz=PlatformDeconz(address=config['deconz']['host'], api_key=config['deconz']['api_key'],
+                                           blacklist=config['blacklist']))
     app.run(host=config['flask']['host'], port=int(config['flask']['port']),
             debug=config.getboolean('flask', 'debug') or args.debug)
