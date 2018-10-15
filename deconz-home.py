@@ -248,12 +248,15 @@ class PlatformDeconz:
             elif execution['command'] == 'action.devices.commands.BrightnessAbsolute':
                 # map google brightness range to deconz
                 brightness = round(execution['params']['brightness'] / 100 * 255)
-                if brightness > 0:
-                    put_data['bri'] = brightness
-                    put_data['on'] = True
-                else:
-                    put_data['bri'] = 0
-                    put_data['on'] = False
+                put_data['bri'] = brightness
+                put_data['on'] = True
+                # TODO: Brightness 0 == off?
+                # if brightness > 0:
+                #     put_data['bri'] = brightness
+                #     put_data['on'] = True
+                # else:
+                #     put_data['bri'] = 0
+                #     put_data['on'] = False
             elif execution['command'] == 'action.devices.commands.ColorAbsolute':
                 if 'temperature' in execution['params']['color']:
                     # transform temperature from google kelvin to deconz mireds
