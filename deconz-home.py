@@ -478,7 +478,7 @@ def int_to_hsv(rgb_int):
 
 def hsv_to_int(hue, saturation, value):
     red, green, blue = hsv_to_rgb(hue, saturation, value)
-    return (red << 16) + (green << 8) + blue
+    return (round(red) << 16) + (round(green) << 8) + round(blue)
 
 
 def get_sync_payload():
